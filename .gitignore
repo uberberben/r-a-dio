@@ -2,6 +2,8 @@
 *.ipr
 *.iws
 .idea/
+data
+out/
 
 #################
 ## Eclipse
