@@ -13,6 +13,8 @@ public class AudioPlayer implements Runnable {
 
     public static AudioPlayer player;
 
+    // Singleton getter
+
     public static AudioPlayer getPlayerObject() {
         if (player == null) {
             player = new AudioPlayer();
@@ -21,21 +23,19 @@ public class AudioPlayer implements Runnable {
 
     }
 
-    //  public AudioPlayer() {
-    //    thread = new Thread(this);
-    //  thread.start();
-    // }
-
+   // Pause player
     public void setPause() {
         paused = true;
         stopped = false;
     }
 
+    // Start playing with thread initialising when not available
     public void setPlay() {
         if (thread == null) {
             thread = new Thread(this);
             thread.start();
         }
+        // Lock waking
         synchronized (lock) {
             stopped = false;
             paused = false;
@@ -44,9 +44,10 @@ public class AudioPlayer implements Runnable {
 
     }
 
+    // Stop playback by deleting the thread
     public void setStop() {
-
         thread = null;
+        // Lock waking
         synchronized (lock) {
             stopped = true;
             paused = false;
@@ -57,7 +58,10 @@ public class AudioPlayer implements Runnable {
 
     @Override
     public void run() {
+
+        // Current thread needed later to stop playing
         Thread thisThread = Thread.currentThread();
+
         AudioInputStream din = null;
         try {
             AudioInputStream in = AudioSystem.getAudioInputStream(new URL("http://r-a-d.io/lb/load-balance.php"));
@@ -79,6 +83,9 @@ public class AudioPlayer implements Runnable {
                 int nBytesRead;
                 synchronized (lock) {
 
+                    /*
+                     *  Do not continue playing when thread is deleted (stop button clicked)
+                     */
                     while ((nBytesRead = din.read(data, 0, data.length)) != -1 && (thread == thisThread)) {
 
                         while (paused) {
@@ -86,13 +93,14 @@ public class AudioPlayer implements Runnable {
                                 line.stop();
                             }
                             try {
+                                // Pause thread and wait for wake by Stop or Play
                                 lock.wait();
                             } catch (InterruptedException e) {
 
                             }
                         }
 
-
+                        // Start playing when waking up from pause
                         if (!line.isRunning() && stopped == false) {
                             line.start();
                         }

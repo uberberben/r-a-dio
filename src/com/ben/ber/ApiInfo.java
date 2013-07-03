@@ -12,11 +12,13 @@ public class ApiInfo implements Runnable {
     private String np, dj;
     private long start, end, cur;
 
+    // constructor starting the api reader thread
     public ApiInfo() {
         Thread thread = new Thread(this);
         thread.start();
     }
 
+    // api data reader
     private void getDataFromApi() {
         try {
             URL data = new URL("http://www.r-a-d.io/api.php");
@@ -41,6 +43,7 @@ public class ApiInfo implements Runnable {
         }
     }
 
+    // api data parsing
     private void parseJson() {
         JSONParser parser = new JSONParser();
         try {
@@ -58,7 +61,7 @@ public class ApiInfo implements Runnable {
         }
     }
 
-
+    // api data refreshing after each song
     @Override
     public void run() {
         while (true) {
@@ -71,7 +74,7 @@ public class ApiInfo implements Runnable {
                 }
                 String data[] = this.getData();
                 System.out.println(data[0]);
-                GUI.changeNowPlaying(data[0]);
+                GUI.setNowPlaying(data[0]);
 
 
 
@@ -84,6 +87,7 @@ public class ApiInfo implements Runnable {
         }
     }
 
+    // getter for now playing and dj info
     public String[] getData() {
         return new String[]{np, dj};
     }

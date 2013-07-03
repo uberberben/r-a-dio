@@ -2,14 +2,12 @@ package com.ben.ber;
 
 
 import javax.swing.*;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.UIManager;
 
-
+// Main frame with some additional stuff
 public class GUI extends JFrame implements Runnable {
     private static JTextPane textArea;
     private static JButton msgSend;
@@ -27,6 +25,7 @@ public class GUI extends JFrame implements Runnable {
 
     }
 
+    // GUI singleton getter
     public static GUI getGUIObject() {
         if (gui == null) {
             gui = new GUI();
@@ -40,7 +39,7 @@ public class GUI extends JFrame implements Runnable {
         super("R/a/dio bot");
 
         try {
-
+            // Windows theme, if not accessible fallback to default java look and feel
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException ex) {
             appendTextArea(ex.toString());
@@ -62,10 +61,11 @@ public class GUI extends JFrame implements Runnable {
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                // Saving form data (nick, pass, channel)
                 LoginPanel.setLoginData();
             }
         });
-        /* przyciski */
+        // Labels, buttons, text areas
 
         JPanel labels = new Labels();
         add(labels);
@@ -79,6 +79,8 @@ public class GUI extends JFrame implements Runnable {
         textArea = new JTextPane();
         textArea.setText("");
         textArea.setEditable(false);
+        // Look at the WrapEditorKit class for explanation
+        textArea.setEditorKit(new WrapEditorKit());
         scrollPane = new JScrollPane(textArea) {
             @Override
             public Dimension getPreferredSize() {
@@ -88,7 +90,10 @@ public class GUI extends JFrame implements Runnable {
 
         doc = textArea.getStyledDocument();
 
-
+        /* Smart scrolling
+         * when at bottom it will scroll automatically
+         * when somewhere else it will stay there until scrolled to bottom
+         */
         scrollPane.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
 
             BoundedRangeModel brm = scrollPane.getVerticalScrollBar().getModel();
@@ -101,26 +106,6 @@ public class GUI extends JFrame implements Runnable {
                 System.out.println("Value: " + brm.getValue() + " Extent: " + brm.getExtent() + " Max: " + brm.getMaximum());
                 System.out.println("O ile: " + scrollPane.getVerticalScrollBar().getBlockIncrement(1));
                 scrollPane.getVerticalScrollBar().setUnitIncrement(17);
-
-
-
-                /*
-
-                if (!brm.getValueIsAdjusting()) {
-
-                    if (wasAtBottom == true){
-
-                        brm.setValue(brm.getMaximum());
-                        System.out.println("1");
-
-                    } else {
-                        wasAtBottom = ((brm.getValue() + brm.getExtent()) == brm.getMaximum());
-                        System.out.println("2");
-                    }
-                } else {
-                    wasAtBottom = ((brm.getValue() + brm.getExtent()) == brm.getMaximum());
-                System.out.println("3");
-                }   */
 
                 if (brm.getValueIsAdjusting()) {
 
@@ -149,6 +134,7 @@ public class GUI extends JFrame implements Runnable {
 
         add(scrollPane);
 
+        // Custom IRC message field
         msgField = new JTextField();
         msgField.setPreferredSize(new Dimension(425, 22));
         add(msgField);
@@ -159,6 +145,7 @@ public class GUI extends JFrame implements Runnable {
         msgSend.setMargin(new Insets(1, 1, 1, 1));
         add(msgSend);
 
+        // Custom IRC message button listener
         msgSend.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -174,6 +161,7 @@ public class GUI extends JFrame implements Runnable {
             }
         });
 
+        // Send message on "Enter" press while typing message
         msgField.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -184,28 +172,32 @@ public class GUI extends JFrame implements Runnable {
 
             @Override
             public void keyPressed(KeyEvent e) {
-                //To change body of implemented methods use File | Settings | File Templates.
+
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                //To change body of implemented methods use File | Settings | File Templates.
+
             }
         });
 
 
         setVisible(true);
+        // Request focus on Nick text area on GUI start
         LoginPanel.requestFocusNick();
     }
 
+    // Custom message field focus setter
     public static void requestFocusMsgField() {
         msgField.requestFocusInWindow();
     }
 
-    public static void changeNowPlaying(String text) {
+    // Now playing setter
+    public static void setNowPlaying(String text) {
         Labels.setNP(text);
     }
 
+    // Main chat appender with some text styles
     public static void appendTextArea(String text) {
         SimpleAttributeSet keyWord = new SimpleAttributeSet();
         SimpleAttributeSet keyWordBold = new SimpleAttributeSet();
@@ -229,18 +221,15 @@ public class GUI extends JFrame implements Runnable {
         //  StyleConstants.setForeground(keyWord, Color.RED);
         //  StyleConstants.setBackground(keyWord, Color.YELLOW);
 
+        // Style setting
         try {
             if (text.startsWith("Hanyuu-sama", LoginPanel.getNickname().length() + 2)) {
                 doc.insertString(doc.getLength(), text.substring(0, separator + 1), botMsgBold);
                 doc.insertString(doc.getLength(), text.substring(separator + 1) + "\n", botMsg);
-
             } else if (text.startsWith("Hanyuu-sama")) {
                 doc.insertString(doc.getLength(), text.substring(0, separator + 1), hanyuuMsgBold);
                 doc.insertString(doc.getLength(), text.substring(separator + 1) + "\n", keyWord);
-
-
             } else {
-
                 doc.insertString(doc.getLength(), text.substring(0, separator + 1), keyWordBold);
                 doc.insertString(doc.getLength(), text.substring(separator + 1) + "\n", keyWord);
             }
@@ -250,13 +239,14 @@ public class GUI extends JFrame implements Runnable {
     }
 }
 
-
+// Panel with login form
 class LoginPanel extends JPanel implements ActionListener {
     private static JTextField nickField, channelField;
     private static JPasswordField nickservPass;
     private static JButton loginButton;
     private String[] loginData;
 
+    // Nick field focus setter
     public static void requestFocusNick() {
         nickField.requestFocusInWindow();
     }
@@ -265,12 +255,16 @@ class LoginPanel extends JPanel implements ActionListener {
         return nickField.getText();
     }
 
+    /*
+     * Saving form data
+     * need to change password getter
+     */
     public static void setLoginData() {
         SaveData.setPreference(nickField.getText(), nickservPass.getText(), channelField.getText());
     }
 
     public LoginPanel() {
-        /* get saved credentials */
+        // Get saved credentials
         loginData = SaveData.getPreference();
 
         GridBagLayout gridBag = new GridBagLayout();
@@ -297,8 +291,13 @@ class LoginPanel extends JPanel implements ActionListener {
         addListeners();
     }
 
+    /*
+    *  Keyboard and mouse listeners on text fields
+    */
     public static void addListeners() {
-                /* listenery myszy u klawiatury do pol tekstowych */
+
+
+        // Select text when focused
         nickField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -320,6 +319,7 @@ class LoginPanel extends JPanel implements ActionListener {
             public void focusLost(FocusEvent e) {
             }
         });
+        // Select text on focus, but without '#' at the beginning
         channelField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -331,20 +331,8 @@ class LoginPanel extends JPanel implements ActionListener {
             public void focusLost(FocusEvent e) {
             }
         });
-        /* nickField.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                nickField.setText("");
-            }
-        });
 
-        nickservPass.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                nickservPass.setText("");
-            }
-        });  */
-
+        // OK button clicking on "Enter" press
         nickservPass.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
@@ -385,12 +373,6 @@ class LoginPanel extends JPanel implements ActionListener {
             }
         });
 
-     /*   channelField.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                channelField.setText("");
-            }
-        });      */
 
         channelField.addKeyListener(new KeyListener() {
             @Override
@@ -401,6 +383,7 @@ class LoginPanel extends JPanel implements ActionListener {
                     loginButton.doClick();
                 }
 
+                // Insert '#' at the beginning when not there
                 if (!channelField.getText().startsWith("#")) {
                     channelField.setText(new StringBuilder(channelField.getText()).insert(0, "#").toString());
                 }
@@ -418,7 +401,7 @@ class LoginPanel extends JPanel implements ActionListener {
         });
     }
 
-
+    // Login button listener, starts the whole connection
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -431,11 +414,13 @@ class LoginPanel extends JPanel implements ActionListener {
     }
 }
 
+// Now playing label class
+
 class Labels extends JPanel {
     private static JLabel np;
 
 
-    public Labels(){
+    public Labels() {
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.CENTER;
@@ -443,23 +428,26 @@ class Labels extends JPanel {
         setLayout(gridBag);
 
         np = new JLabel("Now Playing");
-        np.setPreferredSize(new Dimension(480,20));
+        np.setPreferredSize(new Dimension(480, 20));
         np.setHorizontalAlignment(SwingConstants.CENTER);
         add(np);
 
 
     }
 
-    public static void setNP(String text){
+    // Now playing setter
+    public static void setNP(String text) {
         np.setText(text);
     }
 }
+
+// Fave, unfave etc buttons class
 
 class Buttons extends JPanel implements ActionListener {
     private JButton fave;
     private JButton unfave;
     private JButton queue, play, pause, stop;
-    //  private static JLabel np;
+
 
     public Buttons() {
         GridBagLayout gridBag = new GridBagLayout();
@@ -485,7 +473,7 @@ class Buttons extends JPanel implements ActionListener {
         //  setLayout(new FlowLayout());
         //  setPreferredSize(new Dimension(300, 100));
 
-
+        // Button positions, not really needed now but w/e
         constraints.fill = GridBagConstraints.CENTER;
         constraints.gridy = 1;
         constraints.gridx = 0;
@@ -503,7 +491,7 @@ class Buttons extends JPanel implements ActionListener {
 
     }
 
-
+    // Button listeners
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -511,15 +499,13 @@ class Buttons extends JPanel implements ActionListener {
         if (source == fave) {
             IRCClient.getConnection().doPrivmsg("Hanyuu-sama", ".fave");
             GUI.appendTextArea("Hanyuu-sama>" + ".fave");
-            //GUI.appendTextArea("asdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\nasdasdasdasdadqqqq\n");
         } else if (source == unfave) {
             IRCClient.getConnection().doPrivmsg("Hanyuu-sama", ".unfave");
             GUI.appendTextArea("Hanyuu-sama>" + ".unfave");
-            // GUI.appendTextArea(("asd"));
         } else if (source == queue) {
             IRCClient.getConnection().doPrivmsg(IRCClient.getTarget(), ".q");
             GUI.appendTextArea(IRCClient.getTarget() + " >" + ".q");
-        }  else if (source == play) {
+        } else if (source == play) {
             AudioPlayer.getPlayerObject().setPlay();
         } else if (source == pause) {
             AudioPlayer.getPlayerObject().setPause();
@@ -527,6 +513,61 @@ class Buttons extends JPanel implements ActionListener {
             AudioPlayer.getPlayerObject().setStop();
         }
     }
+}
+
+
+/*
+* Custom class to help with word wrapping in main chat text area
+* dunno why but with default settings it sometimes gets broken
+* solution from https://forums.oracle.com/message/10692405
+*
+* */
+class WrapEditorKit extends StyledEditorKit {
+    ViewFactory defaultFactory=new WrapColumnFactory();
+    public ViewFactory getViewFactory() {
+        return defaultFactory;
+    }
+
+}
+
+class WrapColumnFactory implements ViewFactory {
+    public View create(Element elem) {
+        String kind = elem.getName();
+        if (kind != null) {
+            if (kind.equals(AbstractDocument.ContentElementName)) {
+                return new WrapLabelView(elem);
+            } else if (kind.equals(AbstractDocument.ParagraphElementName)) {
+                return new ParagraphView(elem);
+            } else if (kind.equals(AbstractDocument.SectionElementName)) {
+                return new BoxView(elem, View.Y_AXIS);
+            } else if (kind.equals(StyleConstants.ComponentElementName)) {
+                return new ComponentView(elem);
+            } else if (kind.equals(StyleConstants.IconElementName)) {
+                return new IconView(elem);
+            }
+        }
+
+        // default to text display
+        return new LabelView(elem);
+    }
+}
+
+class WrapLabelView extends LabelView {
+    public WrapLabelView(Element elem) {
+        super(elem);
+    }
+
+    public float getMinimumSpan(int axis) {
+        switch (axis) {
+            case View.X_AXIS:
+                return 0;
+            case View.Y_AXIS:
+                return super.getMinimumSpan(axis);
+            default:
+                throw new IllegalArgumentException("Invalid axis: " + axis);
+        }
+    }
+
 }
 
 

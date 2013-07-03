@@ -188,6 +188,7 @@ public class IRCClient extends Thread {
         target = channelToJoin;
     }
 
+    // Rizon nickserv login
     public static void doNickservPassword() {
         if (nickservPass != null) {
             conn.doPrivmsg("NickServ", "IDENTIFY " + nickservPass);
@@ -218,6 +219,8 @@ public class IRCClient extends Thread {
 
     /**
      * Parses the input and sends it to the IRC server.
+     *
+     * Broken as fuck, not accepting some commands with multiple parameters
      */
     public static void shipInput(String input) throws Exception {
         if (input == null || input.length() == 0){
@@ -248,7 +251,7 @@ public class IRCClient extends Thread {
             print(target + "> " + input);
         }
     }
-
+    // not used
     public class TrustManager implements SSLTrustManager {
         private X509Certificate[] chain;
 
@@ -360,6 +363,7 @@ public class IRCClient extends Thread {
         }
     }
 
+    // appending main text area with irc messages
     public static void print(String str) {
         gui.appendTextArea(str);
     }

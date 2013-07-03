@@ -5,6 +5,7 @@ import java.util.prefs.Preferences;
 public class SaveData {
     private static Preferences prefs;
 
+    // Save form data
     public static void setPreference(String nick, String pass, String channel) {
         if (prefs == null) {
             prefs = Preferences.userRoot().node("SaveData");
@@ -14,6 +15,7 @@ public class SaveData {
         prefs.put("channel", channel);
     }
 
+    // Form data getter
     public static String[] getPreference() {
         if (prefs == null) {
             prefs = Preferences.userRoot().node("SaveData");
