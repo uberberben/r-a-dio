@@ -1,5 +1,7 @@
 package com.ben.ber;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.*;
 import java.io.*;
 
@@ -8,14 +10,29 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import javax.swing.*;
+
+import org.json.*;
+
 public class ApiInfo implements Runnable {
     private String np, dj;
     private long start, end, cur;
+    private int now = -1;
+    Timer progressTimer;
 
     // constructor starting the api reader thread
     public ApiInfo() {
         Thread thread = new Thread(this);
         thread.start();
+
+        progressTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GUI.setProgress(now, (int) (end - start));
+                now++;
+            }
+        });
+        progressTimer.start();
     }
 
     // api data reader
@@ -49,12 +66,13 @@ public class ApiInfo implements Runnable {
         try {
             Object obj = parser.parse(new FileReader("data"));
             JSONObject jsonObject = (JSONObject) obj;
-
             np = (String) jsonObject.get("np");
+            System.out.println(np);
             start = (Long) jsonObject.get("start");
             end = (Long) jsonObject.get("end");
             cur = (Long) jsonObject.get("cur");
             dj = (String) jsonObject.get("dj");
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,17 +86,18 @@ public class ApiInfo implements Runnable {
             try {
                 this.getDataFromApi();
                 this.parseJson();
-                long diff = end - cur;
-                if (diff <= 0 ){
+  //              long diff = end - cur;
+
+                String data[] = this.getData();
+                GUI.setNowPlaying(data[0]);
+  /*              if (diff < 0 ){
+                    Thread.sleep(10000);
                     continue;
                 }
-                String data[] = this.getData();
-                System.out.println(data[0]);
-                GUI.setNowPlaying(data[0]);
+            */
+                now = (int) (cur - start);
 
-
-
-                    Thread.sleep((diff * 1000)+5000);
+                Thread.sleep(10000);
 
             } catch (InterruptedException e) {
                 e.printStackTrace();

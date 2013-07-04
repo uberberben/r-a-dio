@@ -2,6 +2,7 @@ package com.ben.ber;
 
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -195,6 +196,10 @@ public class GUI extends JFrame implements Runnable {
     // Now playing setter
     public static void setNowPlaying(String text) {
         Labels.setNP(text);
+    }
+    // Setting progress bar value and max value
+    public static void setProgress(int current, int max){
+        Labels.setProgressBarValue(current, max);
     }
 
     // Main chat appender with some text styles
@@ -417,7 +422,8 @@ class LoginPanel extends JPanel implements ActionListener {
 // Now playing label class
 
 class Labels extends JPanel {
-    private static JLabel np;
+    private static JLabel np, time;
+    private static JProgressBar progressBar;
 
 
     public Labels() {
@@ -427,13 +433,71 @@ class Labels extends JPanel {
         gridBag.setConstraints(this, constraints);
         setLayout(gridBag);
 
+        constraints.gridy = 0;
         np = new JLabel("Now Playing");
         np.setPreferredSize(new Dimension(480, 20));
         np.setHorizontalAlignment(SwingConstants.CENTER);
-        add(np);
+        add(np, constraints);
+
+        constraints.gridy = 1;
+        constraints.gridx = 0;
+        progressBar = new JProgressBar(0, 1);
+        progressBar.setMaximum(100);
+        progressBar.setValue(33);
+        progressBar.setStringPainted(false);
+        progressBar.setPreferredSize(new Dimension(250,20));
+        add(progressBar, constraints);
+
+        constraints.gridy = 2;
+       // constraints.anchor = GridBagConstraints.WEST;
+        time = new JLabel("0:00/0:00");
+       // time.setPreferredSize(new Dimension(20,20));
+        add(time, constraints);
 
 
     }
+    //Very simple method used to set progressbar and timer value
+    public static void setProgressBarValue(int current, int max){
+        if (current > max){
+            return;
+        }
+        progressBar.setMaximum(max);
+        progressBar.setValue(current);
+
+        StringBuilder sb = new StringBuilder();
+        int nowMin = current / 60;
+        int nowSec = current % 60;
+        if (nowMin < 10){
+            sb.append("0");
+        }
+        sb.append(nowMin);
+        sb.append(":");
+        if (nowSec < 10){
+            sb.append("0");
+        }
+        sb.append(nowSec);
+
+        sb.append("/");
+
+        int maxMin = max / 60;
+        int maxSec = max % 60;
+
+        if (maxMin < 10){
+            sb.append("0");
+        }
+        sb.append(maxMin);
+        sb.append(":");
+
+        if (maxSec < 10){
+            sb.append("0");
+        }
+        sb.append(maxSec);
+
+        time.setText(sb.toString());
+
+    }
+
+
 
     // Now playing setter
     public static void setNP(String text) {

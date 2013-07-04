@@ -88,27 +88,27 @@ public class AudioPlayer implements Runnable {
                      */
                     while ((nBytesRead = din.read(data, 0, data.length)) != -1 && (thread == thisThread)) {
 
-                        while (paused) {
-                            if (line.isRunning()) {
-                                line.stop();
-                            }
-                            try {
-                                // Pause thread and wait for wake by Stop or Play
-                                lock.wait();
-                            } catch (InterruptedException e) {
-
-                            }
+                    while (paused) {
+                        if (line.isRunning()) {
+                            line.stop();
                         }
+                        try {
+                            // Pause thread and wait for wake by Stop or Play
+                            lock.wait();
+                        } catch (InterruptedException e) {
 
-                        // Start playing when waking up from pause
-                        if (!line.isRunning() && stopped == false) {
-                            line.start();
                         }
-
-
-                        line.write(data, 0, nBytesRead);
                     }
+
+                    // Start playing when waking up from pause
+                    if (!line.isRunning() && stopped == false) {
+                        line.start();
+                    }
+
+
+                    line.write(data, 0, nBytesRead);
                 }
+            }
                 // Stop
                 line.drain();
                 line.stop();
