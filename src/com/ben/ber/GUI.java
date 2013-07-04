@@ -57,7 +57,7 @@ public class GUI extends JFrame implements Runnable {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
         setLocation(50, 50);
-        setSize(500, 650);
+        setSize(500, 680);
         setLayout(new FlowLayout());
         this.addWindowListener(new WindowAdapter() {
             @Override
