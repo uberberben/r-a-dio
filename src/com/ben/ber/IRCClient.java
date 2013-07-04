@@ -1,10 +1,7 @@
 package com.ben.ber;
 
 //import org.schwering.irc.lib.IRCConnection;
-import org.schwering.irc.lib.IRCConnection;
-import org.schwering.irc.lib.IRCEventListener;
-import org.schwering.irc.lib.IRCModeParser;
-import org.schwering.irc.lib.IRCUser;
+import org.schwering.irc.lib.*;
 import org.schwering.irc.lib.ssl.SSLIRCConnection;
 import org.schwering.irc.lib.ssl.SSLTrustManager;
 
@@ -13,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Hashtable;
+
 
 
 public class IRCClient extends Thread {
@@ -217,6 +215,8 @@ public class IRCClient extends Thread {
         }  */
     }
 
+
+
     /**
      * Parses the input and sends it to the IRC server.
      *
@@ -233,10 +233,22 @@ public class IRCClient extends Thread {
                 return;
             } else if (startsWith(input, "/JOIN")) {
                 target = input.substring(6);
-            } else if (startsWith(input, "/MSG")) {
-                input = input.substring(4);
-                print("Exec: PRIVMSG " + input);
-                conn.send("PRIVMSG " +input);
+            } else if (startsWith(input, "/MSG") || startsWith(input, "/PRIVMSG")) {
+
+                // Very, very bad method of splitting nick from parameters
+                String test = input.substring(1);
+                IRCParser p = new IRCParser(test, false);
+                String middle = p.getMiddle(); // nick + first parameter
+                String trailing = p.getTrailing();  // second + ... parameter
+                String splitter[] = middle.split(" ",2);
+                String nick = splitter[0];
+                String fPar = splitter[1];
+
+                conn.doPrivmsg(nick, fPar + " " + trailing);
+
+                //input = input.substring(4);
+                //print("Exec: PRIVMSG " + input);
+                //conn.send("PRIVMSG " +input);
                 return;
             }
             input = input.substring(1);
