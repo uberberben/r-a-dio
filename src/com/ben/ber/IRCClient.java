@@ -1,6 +1,7 @@
 package com.ben.ber;
 
 //import org.schwering.irc.lib.IRCConnection;
+
 import org.schwering.irc.lib.*;
 import org.schwering.irc.lib.ssl.SSLIRCConnection;
 import org.schwering.irc.lib.ssl.SSLTrustManager;
@@ -10,7 +11,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Hashtable;
-
 
 
 public class IRCClient extends Thread {
@@ -60,11 +60,8 @@ public class IRCClient extends Thread {
 
 
     public static void main(String[] args) {
-
         Thread thread = new Thread(gui = GUI.getGUIObject());
         new ApiInfo();
-
-
     }
 
     /**
@@ -163,14 +160,13 @@ public class IRCClient extends Thread {
         if (conn != null && conn.isConnected()) {
             conn.close();
         }
-
         if (!ssl) {
             conn = new IRCConnection(host, new int[]{port}, pass, nick, user,
                     name);
         } else {
             conn = new SSLIRCConnection(host, new int[]{port}, pass, nick, user,
                     name);
-           ((SSLIRCConnection) conn).addTrustManager(new TrustManager());
+            ((SSLIRCConnection) conn).addTrustManager(new TrustManager());
         }
 
         conn.addIRCEventListener(new Listener());
@@ -203,7 +199,7 @@ public class IRCClient extends Thread {
     }
 
     /**
-     * The thread waits for input.
+     * The thread waits for input. Not used in GUI version.
      */
     public void run() {
       /*  while (true) {
@@ -216,17 +212,15 @@ public class IRCClient extends Thread {
     }
 
 
-
     /**
      * Parses the input and sends it to the IRC server.
-     *
+     * <p/>
      * Broken as fuck, not accepting some commands with multiple parameters
      */
     public static void shipInput(String input) throws Exception {
-        if (input == null || input.length() == 0){
+        if (input == null || input.length() == 0) {
             return;
         }
-
         if (input.charAt(0) == '/') {
             if (startsWith(input, "/TARGET")) {
                 target = input.substring(8);
@@ -240,15 +234,11 @@ public class IRCClient extends Thread {
                 IRCParser p = new IRCParser(test, false);
                 String middle = p.getMiddle(); // nick + first parameter
                 String trailing = p.getTrailing();  // second + ... parameter
-                String splitter[] = middle.split(" ",2);
+                String splitter[] = middle.split(" ", 2);
                 String nick = splitter[0];
                 String fPar = splitter[1];
-
                 conn.doPrivmsg(nick, fPar + " " + trailing);
 
-                //input = input.substring(4);
-                //print("Exec: PRIVMSG " + input);
-                //conn.send("PRIVMSG " +input);
                 return;
             }
             input = input.substring(1);
@@ -260,9 +250,10 @@ public class IRCClient extends Thread {
             }
             conn.doPrivmsg(target, input);
             // conn.send(input);
-            print(target + "> " + input);
+            print(conn.getNick() + "> " + input);
         }
     }
+
     // not used
     public class TrustManager implements SSLTrustManager {
         private X509Certificate[] chain;
@@ -345,7 +336,7 @@ public class IRCClient extends Thread {
 
         public void onPrivmsg(String chan, IRCUser u, String msg) {
             if (startsWith(chan, "#")) {
-                print(u.getNick() + "> " + ": " + msg);
+                print(u.getNick() + "> " + msg);
             } else {
                 print("PRV MSG from " + u.getNick() + "> " + msg);
                 if (msg.equals("hej")) {
