@@ -60,7 +60,7 @@ public class IRCClient extends Thread {
 
 
     public static void main(String[] args) {
-        Thread thread = new Thread(gui = GUI.getGUIObject());
+        gui = GUI.getGUIObject();
         new ApiInfo();
     }
 

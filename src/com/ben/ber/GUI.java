@@ -9,7 +9,7 @@ import java.awt.event.*;
 import javax.swing.UIManager;
 
 // Main frame with some additional stuff
-public class GUI extends JFrame implements Runnable {
+public class GUI extends JFrame {
     private static JTextPane textArea;
     private static JButton msgSend;
     private static JScrollPane scrollPane;
@@ -20,11 +20,6 @@ public class GUI extends JFrame implements Runnable {
 
 
     public static GUI gui;
-
-
-    public void run() {
-
-    }
 
     // GUI singleton getter
     public static GUI getGUIObject() {
@@ -183,9 +178,17 @@ public class GUI extends JFrame implements Runnable {
         });
 
 
-        setVisible(true);
-        // Request focus on Nick text area on GUI start
-        LoginPanel.requestFocusNick();
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                setVisible(true);
+                // Request focus on Nick text area on GUI start
+                LoginPanel.requestFocusNick();
+            }
+        });
+
+
+
     }
 
     // Custom message field focus setter
@@ -510,7 +513,7 @@ class Labels extends JPanel {
 class Buttons extends JPanel implements ActionListener {
     private JButton fave;
     private JButton unfave;
-    private JButton queue, play, pause, stop;
+    private JButton queue, play, pause, stop, search;
 
 
     public Buttons() {
@@ -526,6 +529,7 @@ class Buttons extends JPanel implements ActionListener {
         play = new JButton("Play");
         pause = new JButton("Pause");
         stop = new JButton("Stop");
+        search = new JButton("Search");
 
         fave.addActionListener(this);
         unfave.addActionListener(this);
@@ -533,6 +537,7 @@ class Buttons extends JPanel implements ActionListener {
         play.addActionListener(this);
         pause.addActionListener(this);
         stop.addActionListener(this);
+        search.addActionListener(this);
 
         //  setLayout(new FlowLayout());
         //  setPreferredSize(new Dimension(300, 100));
@@ -552,6 +557,8 @@ class Buttons extends JPanel implements ActionListener {
         add(pause, constraints);
         constraints.gridx = 5;
         add(stop, constraints);
+        constraints.gridx = 6;
+        add(search, constraints);
 
     }
 
@@ -575,6 +582,8 @@ class Buttons extends JPanel implements ActionListener {
             AudioPlayer.getPlayerObject().setPause();
         } else if (source == stop) {
             AudioPlayer.getPlayerObject().setStop();
+        } else if (source == search) {
+            new SearchFrame();
         }
     }
 }
