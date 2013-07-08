@@ -17,26 +17,32 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class SearchApiParser implements Runnable {
+    private static Thread thread;
     private static ArrayList<Track> searchedTracks;
     private static boolean isRequestAvailable;
     private static Long pages;
-    StringBuilder sb;
-    private static Object lock = new Object();
+    private static StringBuilder sb;
+    private static Object lock;
     private static String query;
+    private static int count;
 
     public SearchApiParser() {
-        Thread thread = new Thread(this);
+        thread = new Thread(this);
         thread.start();
     }
 
     @Override
     public void run() {
+        Thread thisThread = Thread.currentThread();
+        lock = new Object();
+        count++;
         synchronized (lock) {
             parseIsRequestPossible(getDataFromApi("",1));
-            while (true) {
+            while (thread == thisThread) {
                 try {
                     lock.wait();
                     if (query != null){
+                        System.out.println(count);
                         searchPages(getDataFromApi(query, 1));
                     }
                 } catch (InterruptedException e) {
@@ -53,7 +59,7 @@ public class SearchApiParser implements Runnable {
         }
     }
 
-    private String getDataFromApi(String query, int page) {
+    private static String getDataFromApi(String query, int page) {
         try {
             String urlEncoderQuery = URLEncoder.encode(query, "UTF-8");
             URL data = new URL("http://www.r-a-d.io/search/api.php" + "?query=" +urlEncoderQuery + "&page=" + Integer.toString(page));
@@ -113,7 +119,11 @@ public class SearchApiParser implements Runnable {
         }
     }
 
-    private void parseIsRequestPossible(String JSON) {
+    public static void parseIsRequestPossible(String JSON) {
+        if (JSON == ""){
+            System.out.println("pustka");
+            JSON = getDataFromApi("",1);
+        }
         JSONParser parser = new JSONParser();
         try {
             Object obj = parser.parse(JSON);
@@ -127,6 +137,11 @@ public class SearchApiParser implements Runnable {
 
     private void getTrackDetails(JSONArray details) {
         searchedTracks.add(new Track(details));
+    }
+
+    public static void clearStuff(){
+        thread = null;
+        query = null;
     }
 }
 
@@ -149,5 +164,10 @@ class Track {
         trackId = Integer.parseInt((String) list.get(4));
         isRequestable = (Boolean) list.get(5);
 
+    }
+
+    @Override
+    public String toString(){
+        return (artistName + " - " + trackName);
     }
 }

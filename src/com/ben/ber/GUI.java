@@ -514,6 +514,7 @@ class Buttons extends JPanel implements ActionListener {
     private JButton fave;
     private JButton unfave;
     private JButton queue, play, pause, stop, search;
+    SearchFrame searchFrame;
 
 
     public Buttons() {
@@ -583,7 +584,10 @@ class Buttons extends JPanel implements ActionListener {
         } else if (source == stop) {
             AudioPlayer.getPlayerObject().setStop();
         } else if (source == search) {
-            new SearchFrame();
+            if (searchFrame != null){
+                searchFrame = null;
+            }
+            searchFrame = new SearchFrame();
         }
     }
 }
